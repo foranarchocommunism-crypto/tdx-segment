@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import posixpath
 import re
 import subprocess
 import zipfile
@@ -92,7 +93,7 @@ SHA256SUMS.txt 校验发布文件；release-manifest.json 记录源码、工具�
         package = output / f"TDXSegment-{tag}-windows-{arch}.zip"
         with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
             archive.write(args.build_root.resolve() / arch / "Release" / "TDXSegment.dll", "TDXSegment.dll")
-            for rel in ("LICENSE", "VERSION", "docs/usage.md", "docs/interface.md"):
+            for rel in ("LICENSE", "VERSION", "docs/usage.md", "docs/interface.md", "include/tdx_segment/tdx_segment.hpp"):
                 archive.write(ROOT / rel, rel)
             for formula in sorted((ROOT / "examples" / "tdx").glob("*.txt")):
                 archive.write(formula, "examples/tdx/" + formula.name)
@@ -100,6 +101,18 @@ SHA256SUMS.txt 校验发布文件；release-manifest.json 记录源码、工具�
             archive.writestr("build-info.json", json.dumps({"version": version, "source_commit": commit, "architecture": arch, **metadata}, ensure_ascii=False, indent=2) + "\n")
             archive.writestr("RELEASE_NOTES.md", notes)
             archive.writestr("validation-report.json", report_text)
+        # Interface documentation must remain navigable in an extracted binary ZIP.
+        with zipfile.ZipFile(package) as archive:
+            names = set(archive.namelist())
+            for name in names:
+                if not name.endswith(".md"):
+                    continue
+                for target in re.findall(r"\]\(([^\s)]+)\)", archive.read(name).decode("utf-8")):
+                    if target.startswith(("http://", "https://", "#", "mailto:")):
+                        continue
+                    destination = posixpath.normpath(posixpath.join(posixpath.dirname(name), target.split("#", 1)[0]))
+                    if destination not in names:
+                        raise RuntimeError(f"Broken package documentation link: {name} -> {target}")
         metadata["package"] = package.name
         metadata["package_sha256"] = sha(package)
     manifest = {"schema": "tdx-segment-release-manifest-v1", "version": version, "tag": tag, "source_commit": commit, "license": "MIT", "source_archive": {"file": source_zip.name, "sha256": sha(source_zip)}, "architectures": architectures, "validation_report_sha256": sha(output / "validation-report.json"), "source_files": {}}
