@@ -1,6 +1,6 @@
 # 输入、输出与 ABI
 
-公共 C++ 定义以 [tdx_segment.hpp](../include/tdx_segment/tdx_segment.hpp) 为准。DLL 按字面名称导出 `RegisterTdxFunc`，注册表函数号为 1、2、99，以 0 结束。`PluginTCalcFuncInfo` 使用 1 字节对齐，标记字段为 16 位；回调顺序为 DataLen、OUT、INa、INb、INc。位数、结构布局和函数调用约定均为兼容协议的一部分。
+公共 C++ 定义以 [tdx_segment.hpp](../include/tdx_segment/tdx_segment.hpp) 为准。DLL 按字面名称导出 `RegisterTdxFunc`，注册表函数号为 1、2、10、11、99，以 0 结束。`PluginTCalcFuncInfo` 使用 1 字节对齐，标记字段为 16 位；回调顺序为 DataLen、OUT、INa、INb、INc。位数、结构布局和函数调用约定均为兼容协议的一部分。
 
 输入三数组等长且仅在本次调用有效；实现不缓存宿主裸指针。`TdxSeriesView` 的三输入为 endpoint_markers、highs、lows。合法但尚未形成线段时返回成功及全零事件。C++ 返回包含状态、错误码、错误 K 线和事件数组；宿主通过事件位接收结果。
 
@@ -19,3 +19,7 @@
 错误码：0 无错误；1 非正长度；2 空输入数组；3 非有限价格；4 H<L；5 非法端点标记；7 笔价格方向错误。历史编号 6 已停用，后续编号保持原值。连续同类端点属于合法候选流。
 
 函数 1 使用默认恢复策略 43/13/13，函数 2 使用实验策略 43/13/9；C++ `CalculateSegmentEventsWithoutRecovery` 为验证入口，未注册为 DLL 函数。生产入口在完整计算、结构检查和事件编码成功后一次写回；适配层捕获异常，遵守既有原子错误输出协议。
+
+## 笔计算入口（rc.2新增）
+
+函数10 `(C,DAY,0)` 返回均线方向/跨日/预热编码，函数11 `(H,L,context)` 返回顶底两个位。新增C++类型及声明见 [pen_formula.hpp](../include/tdx_segment/pen_formula.hpp)，编码、输入验证和宿主验收边界见[笔迁移说明](pen-migration.md)。旧函数的标记、错误码与ABI不变。

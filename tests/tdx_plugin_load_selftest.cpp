@@ -90,8 +90,8 @@ int wmain(int argc, wchar_t* argv[]) {
             formal = functions[index].pCallFunc;
         }
     }
-    if (registered_count != 3U) {
-        return Fail("The function table must contain functions 1, 2 and 99.", module);
+    if (registered_count != 5U) {
+        return Fail("The function table must contain functions 1, 2, 10, 11 and 99.", module);
     }
     if (functions[registered_count].pCallFunc != nullptr) {
         return Fail("The function table terminator must have a null callback.", module);

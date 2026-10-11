@@ -1,4 +1,5 @@
 #include "tdx_segment/tdx_segment.hpp"
+#include "tdx_segment/pen_formula.hpp"
 #include "PluginTCalcFunc.h"
 
 #include <array>
@@ -40,6 +41,12 @@ namespace tdx_segment {
 CalculationResult CalculateInterfaceProbeV1(const TdxSeriesView& input) { return StubCalculation(input); }
 CalculationResult CalculateSegmentEventsV1(const TdxSeriesView& input) { return StubCalculation(input); }
 CalculationResult CalculateSegmentEventsV2(const TdxSeriesView& input) { return StubCalculation(input); }
+CalculationResult CalculatePenContextV1(const TdxPenContextView& input) {
+    return StubCalculation({input.data_len, input.closes, input.days, input.close_copy});
+}
+CalculationResult CalculatePenFlagsV1(const TdxPenSeriesView& input) {
+    return StubCalculation({input.data_len, input.highs, input.lows, input.context});
+}
 }  // namespace tdx_segment
 
 int main() {

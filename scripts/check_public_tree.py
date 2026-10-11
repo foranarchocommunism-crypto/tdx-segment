@@ -8,6 +8,10 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_FILES = {"CMakeLists.txt", "VERSION", "LICENSE", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", ".gitignore", ".gitattributes", "docs/assets/overview.svg"}
+ROOT_FILES.update({"README.DEV.md", "tests/fixtures/legacy_pen_formula.txt"})
+ROOT_FILES.update("docs/assets/" + name for name in (
+    "hero.svg", "case-overview.svg", "case-first-pending.svg", "case-second-pending.svg",
+    "install-01.svg", "install-02.svg", "install-03.svg"))
 SUFFIXES = {"src": {".cpp", ".hpp"}, "include": {".hpp"}, "compat": {".h"}, "reference": {".py"}, "tests": {".cpp", ".py"}, "scripts": {".ps1", ".py"}, "docs": {".md"}, "examples": {".txt"}, ".github": {".yml"}}
 
 

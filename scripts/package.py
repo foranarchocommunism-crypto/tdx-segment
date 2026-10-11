@@ -59,6 +59,11 @@ def main() -> None:
         raise RuntimeError("Validation receipt does not bind this version and commit")
     if not report.get("source_archive_smoke", {}).get("passed") or not report.get("public_tree_checks", {}).get("passed"):
         raise RuntimeError("Independent archive smoke/public file checks are required")
+    pen = report.get("pen_migration", {})
+    if not pen.get("passed") or pen.get("random_groups", 0) < 5000 or pen.get("seed") != 20260828:
+        raise RuntimeError("Pen migration needs the extended frozen-formula validation receipt")
+    if any(pen.get("architectures", {}).get(a, {}).get("mismatches") != 0 for a in ("x86", "x64")):
+        raise RuntimeError("Both pen migration architectures must pass with zero differences")
     architectures = {}
     for arch in ("x86", "x64"):
         dll = args.build_root.resolve() / arch / "Release" / "TDXSegment.dll"
@@ -76,28 +81,36 @@ def main() -> None:
         raise RuntimeError("Source archive differs from independently tested archive")
     report_text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     (output / "validation-report.json").write_text(report_text, encoding="utf-8")
-    notes = f"""# TDXSegment {tag}
+    notes = f"""# 缠论线段自动划分 {tag}
 
-源码提交：`{commit}`。本地预发布，MIT，TDXSegment contributors。
+源码提交：`{commit}`。预发布，MIT，TDXSegment contributors。
 
-包含 Windows x86/x64 Release DLL、四份通达信接入公式与使用说明。正式函数1、实验函数2、接线函数99及 ABI 保持既有行为。按进程位数选包；先运行01自检公式。公式默认第1槽。
+笔计算移入DLL，新增无状态函数10/11，四份日常公式同步更新，另提供05迁移对照公式。正式函数1、实验函数2、接线函数99及ABI保持既有行为。按通达信位数选包，先运行01自检，公式默认第1槽。用户指南与开发者说明分开，附合成案例和安装示意图。
 
-两架构各13项CTest通过；{report['random_groups']}组随机输入及派生共{report['snapshot_count']}个快照，三策略事件/完整审计新旧零差异，真实DLL 1/2/99零差异，Python正式语义对拍通过。独立源码包验证见 validation-report.json。
+两架构各15项CTest通过；既有{report['random_groups']}组随机输入及派生共{report['snapshot_count']}个快照，三策略事件/完整审计新旧零差异。笔迁移另用{pen['random_groups']}组及派生共{pen['snapshots']}个快照，对比冻结原公式参考解释器与真实DLL 10/11，零差异；同一参考笔流经旧新DLL 1/2/99流水线零差异。独立源码包验证见 validation-report.json。
 
-本次为项目整理与发布验证，不是新的速度优化。历史最终组合全量验收未完成，历史三项99%算法目标未达成。远程GitHub CI和本次客户端人工验证未运行。
+通达信内的笔迁移对照仍待执行：维护者没有旧公式导出结果，自动对拍仅验证明确的参考语义。05对照公式已准备，实际宿主差异数未记录。第一、第二类待定保持现行规则；历史最终组合全量验收未完成，三项99%算法目标未达成。本次不开展新的速度优化。
 
-SHA256SUMS.txt 校验发布文件；release-manifest.json 记录源码、工具链、架构及哈希。完整源码和构建说明在源码包 README.md / docs/build.md。
+远程GitHub CI状态：{report.get('remote_ci', 'not_run')}。本次客户端人工验证：{report.get('client_manual_validation', 'not_run')}。
+
+SHA256SUMS.txt校验发布文件；release-manifest.json记录源码、工具链、架构及哈希。普通使用见README.md，开发与构建见源码包README.DEV.md。
 """
     (output / "RELEASE_NOTES.md").write_text(notes, encoding="utf-8")
     for arch, metadata in architectures.items():
         package = output / f"TDXSegment-{tag}-windows-{arch}.zip"
         with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
             archive.write(args.build_root.resolve() / arch / "Release" / "TDXSegment.dll", "TDXSegment.dll")
-            for rel in ("LICENSE", "VERSION", "docs/usage.md", "docs/interface.md", "include/tdx_segment/tdx_segment.hpp"):
+            for rel in ("LICENSE", "VERSION", "docs/usage.md", "docs/interface.md", "docs/pen-migration.md", "include/tdx_segment/tdx_segment.hpp", "include/tdx_segment/pen_formula.hpp"):
                 archive.write(ROOT / rel, rel)
+            for asset in sorted((ROOT / "docs/assets").glob("*.svg")):
+                archive.write(asset, "docs/assets/" + asset.name)
+            archive.write(ROOT / "tests/fixtures/legacy_pen_formula.txt", "tests/fixtures/legacy_pen_formula.txt")
+            archive.write(ROOT / "reference/pen_formula_reference.py", "reference/pen_formula_reference.py")
             for formula in sorted((ROOT / "examples" / "tdx").glob("*.txt")):
                 archive.write(formula, "examples/tdx/" + formula.name)
-            archive.writestr("README.md", f"# TDXSegment {tag} / {arch}\n\n对应客户端进程位数选择DLL。先看 docs/usage.md，运行01自检，再使用02正式公式。默认槽位TDXDLL1。\n\n源码提交：{commit}\nDLL SHA-256：{metadata['dll_sha256']}\n\n完整源码见同版源码包。许可见 LICENSE，验证及限制见 RELEASE_NOTES.md 和 validation-report.json。\n")
+            user_readme = (ROOT / "README.md").read_text(encoding="utf-8").replace(
+                "](README.DEV.md)", f"](https://github.com/foranarchocommunism-crypto/tdx-segment/blob/{tag}/README.DEV.md)")
+            archive.writestr("README.md", user_readme + f"\n包内版本：{tag} / {arch}。源码提交：`{commit}`。\n")
             archive.writestr("build-info.json", json.dumps({"version": version, "source_commit": commit, "architecture": arch, **metadata}, ensure_ascii=False, indent=2) + "\n")
             archive.writestr("RELEASE_NOTES.md", notes)
             archive.writestr("validation-report.json", report_text)

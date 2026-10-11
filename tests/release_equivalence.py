@@ -21,6 +21,7 @@ EXPECTED_TESTS = {
     "many_short_segments_performance_regression", "python_cpp_reference_crosscheck",
     "python_cpp_audit_crosscheck", "window_growth_performance_regression",
     "audit_seam_selftest", "pen_range_selftest", "evaluation_continuation_selftest",
+    "pen_formula_selftest", "pen_formula_dll_crosscheck",
 }
 
 
@@ -42,8 +43,8 @@ def invoke(command: list[str], serialized: str = "", timeout: int = 1800) -> str
 def ctest_result(build: Path) -> list[dict]:
     suite = ET.parse(build / "ctest-results.xml").getroot()
     cases = suite.findall("testcase")
-    if {c.get("name") for c in cases} != EXPECTED_TESTS or len(cases) != 13:
-        raise RuntimeError("Expected all 13 CTest entries")
+    if {c.get("name") for c in cases} != EXPECTED_TESTS or len(cases) != len(EXPECTED_TESTS):
+        raise RuntimeError("Expected all CTest entries, including the original 13 and pen migration tests")
     if any(c.find("failure") is not None or c.find("skipped") is not None or c.get("status") != "run" for c in cases):
         raise RuntimeError("CTest has failures, skipped entries or non-run entries")
     return [{"name": c.get("name"), "seconds": float(c.get("time", "0")), "output": c.findtext("system-out", "")} for c in cases]

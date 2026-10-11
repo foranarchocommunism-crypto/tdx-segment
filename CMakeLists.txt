@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(TDXSegment VERSION 0.1.0 LANGUAGES CXX)
-set(TDX_RELEASE_VERSION "0.1.0-rc.1")
+set(TDX_RELEASE_VERSION "0.1.0-rc.2")
 
 if(NOT WIN32 OR NOT MSVC)
     message(FATAL_ERROR "TDXSegment must be built on Windows with MSVC.")
@@ -55,6 +55,7 @@ add_library(tdx_segment_core STATIC
     src/event_encoder.cpp
     src/segment_evaluator.cpp
     src/long_stall_recovery.cpp
+    src/pen_formula.cpp
 )
 target_include_directories(
     tdx_segment_core
@@ -308,6 +309,16 @@ add_executable(tdx_dll_runner tests/tdx_dll_runner.cpp)
 target_include_directories(tdx_dll_runner PRIVATE "${TDX_VENDOR_INCLUDE_DIR}")
 tdx_enable_strict_warnings(tdx_dll_runner)
 set_tests_properties(many_short_segments_performance_regression window_growth_performance_regression PROPERTIES LABELS "performance")
+add_executable(tdx_pen_formula_selftest tests/tdx_pen_formula_selftest.cpp)
+target_link_libraries(tdx_pen_formula_selftest PRIVATE tdx_segment_core)
+target_include_directories(tdx_pen_formula_selftest PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+tdx_enable_strict_warnings(tdx_pen_formula_selftest)
+add_test(NAME pen_formula_selftest COMMAND tdx_pen_formula_selftest)
+add_test(NAME pen_formula_dll_crosscheck COMMAND "${Python3_EXECUTABLE}" -X utf8 -B
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/crosscheck_pen_formula.py"
+    --runner "$<TARGET_FILE:tdx_dll_runner>" --dll "$<TARGET_FILE:TDXSegment>" --random-cases 150)
+set_tests_properties(pen_formula_dll_crosscheck PROPERTIES TIMEOUT 180)
+
 endif()
 
 install(TARGETS TDXSegment RUNTIME DESTINATION .)

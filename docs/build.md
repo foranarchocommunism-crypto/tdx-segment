@@ -52,6 +52,14 @@ python -B scripts/check_public_tree.py
 .\scripts\package.ps1 -ValidationReport 'build/release-validation.json'
 ```
 
-打包器核对源码提交、标签、验收记录及 DLL 哈希，再生成源码 ZIP、两个二进制 ZIP、验证报告、发布说明、SHA256SUMS 和构建清单。默认输出 `dist/v0.1.0-rc.1`，拒绝覆盖已有发布目录。打包需要 Git 和 Python 3.12；普通 DLL 构建不需要 Python。
+打包器核对源码提交、标签、验收记录及 DLL 哈希，再生成源码 ZIP、两个二进制 ZIP、验证报告、发布说明、SHA256SUMS 和构建清单。默认输出 `dist/v0.1.0-rc.2`，拒绝覆盖已有发布目录。打包需要 Git 和 Python 3.12；普通 DLL 构建不需要 Python。
 
 预发布 ZIP 为便携包，不执行安装、客户端配置修改或远程上传。
+
+## 笔迁移扩展对拍
+
+```powershell
+python -B tests/crosscheck_pen_formula.py --build-root build --baseline-build 'C:/baseline-build' --random-cases 5000 --seed 20260828 --output build/pen-validation.json
+```
+
+正式发布记录需要合并这份报告。C++与冻结公式解释器的对拍不替代通达信宿主验收；运行05对照公式的方法见[笔迁移](pen-migration.md)。

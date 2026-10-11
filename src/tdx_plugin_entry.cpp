@@ -1,4 +1,5 @@
 #include "tdx_segment/tdx_segment.hpp"
+#include "tdx_segment/pen_formula.hpp"
 #include "PluginTCalcFunc.h"
 
 #include <algorithm>
@@ -26,17 +27,16 @@ void WriteAtomicError(
     output[data_len - 1] = static_cast<float>(error_bit);
 }
 
-using Calculator = tdx_segment::CalculationResult (*)(const tdx_segment::TdxSeriesView&);
-
+template<class View>
 void InvokeCalculation(
-    Calculator calculate, std::uint16_t error_bit,
+    tdx_segment::CalculationResult (*calculate)(const View&), std::uint16_t error_bit,
     int data_len, float* output, float* endpoint_markers, float* highs, float* lows
 ) noexcept {
     if (data_len <= 0 || output == nullptr) {
         return;
     }
     try {
-        const tdx_segment::TdxSeriesView input{data_len, endpoint_markers, highs, lows};
+        const View input{data_len, endpoint_markers, highs, lows};
         const auto result = calculate(input);
         if (result.event_mask.size() != static_cast<std::size_t>(data_len)) {
             WriteAtomicError(data_len, output, error_bit);
@@ -70,6 +70,16 @@ void CalcSegmentEventsV2(
         data_len, output, endpoint_markers, highs, lows);
 }
 
+void CalcPenContextV1(int length, float* output, float* closes, float* days, float* close_copy) noexcept {
+    InvokeCalculation(tdx_segment::CalculatePenContextV1, tdx_segment::SegmentInputError,
+        length, output, closes, days, close_copy);
+}
+
+void CalcPenFlagsV1(int length, float* output, float* highs, float* lows, float* context) noexcept {
+    InvokeCalculation(tdx_segment::CalculatePenFlagsV1, tdx_segment::SegmentInputError,
+        length, output, highs, lows, context);
+}
+
 }  // namespace
 
 // 厂商规范要求所有回调都登记在这个全局数组中，并以 0 号项结束。
@@ -86,6 +96,8 @@ PluginTCalcFuncInfo g_CalcFuncSets[] = {
         tdx_segment::kInterfaceProbeFunctionId,
         &CalcInterfaceProbeV1,
     },
+    {tdx_segment::kPenContextFunctionId, &CalcPenContextV1},
+    {tdx_segment::kPenFlagsFunctionId, &CalcPenFlagsV1},
     {0U, nullptr},
 };
 
