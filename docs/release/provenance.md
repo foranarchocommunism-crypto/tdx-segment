@@ -1,6 +1,6 @@
 # 许可证、来源与发布范围
 
-项目唯一作者为 [Sixun Huang](https://github.com/foranarchocommunism-crypto)。自有 C++/Python 源码、文档及随包公式按根目录 [MIT LICENSE](../LICENSE) 发布，版权署名为 `Copyright (c) 2026 Sixun Huang`。原四份公式的公开授权已由项目作者确认；迁移对照公式由本项目在相同原公式基础上新增。
+项目唯一作者为 [Sixun Huang](https://github.com/foranarchocommunism-crypto)。自有 C++/Python 源码、文档及随包公式按根目录 [MIT LICENSE](../../LICENSE) 发布，版权署名为 `Copyright (c) 2026 Sixun Huang`。原四份公式的公开授权已由项目作者确认；迁移对照公式由本项目在相同原公式基础上新增。
 
 `compat/tdx/PluginTCalcFunc.h` 是按插件接口 ABI 编写的最小兼容声明，只包含必要的类型、布局和函数签名；不是随包发布的厂商 SDK。工程允许使用外部厂商头文件替换，厂商 SDK 的许可仍由其权利人规定。
 
@@ -8,4 +8,4 @@
 
 首版整理保留内核、公共接口、参考实现、既有测试和公式的实现内容；目录、构建配置、注释来源说明及发布文档的变化见 [迁移说明](migration.md)。原实验记录没有转为本次通过声明。
 
-首页公开三个合成案例的局部坐标，来源与范围见[案例说明](examples.md)。
+首页公开三个合成案例的局部坐标，来源与范围见[案例说明](../user/examples.md)。

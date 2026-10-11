@@ -1,6 +1,6 @@
 # 笔计算迁移与宿主验收
 
-`v0.1.0-rc.2` 将四份原公式中的笔计算移入 DLL。原表达式冻结在 [legacy_pen_formula.txt](../tests/fixtures/legacy_pen_formula.txt)，由独立的 [Python 解释器](../reference/pen_formula_reference.py)读取，用于自动对拍；它没有调用 C++ 结果来产生预期值。
+`v0.1.0-rc.2` 将四份原公式中的笔计算移入 DLL。原表达式冻结在 [legacy_pen_formula.txt](../../tests/fixtures/legacy_pen_formula.txt)，由独立的 [Python 解释器](../../reference/pen_formula_reference.py)读取，用于自动对拍；它没有调用 C++ 结果来产生预期值。
 
 ## 三数组接口如何接收四项信息
 

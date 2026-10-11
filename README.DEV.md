@@ -2,7 +2,7 @@
 
 作者：[Sixun Huang](https://github.com/foranarchocommunism-crypto)。
 
-[用户首页](README.md) · [构建与打包](docs/build.md) · [接口协议](docs/interface.md) · [笔计算迁移](docs/pen-migration.md)
+[用户首页](README.md) · [构建与打包](docs/development/build.md) · [接口协议](docs/development/interface.md) · [笔计算迁移](docs/development/pen-migration.md)
 
 TDXSegment 是通达信使用的 C++17 计算库，提供笔识别、已确认线段事件、Windows DLL、Python 参考计算和回归工具。工程名称、`TDXSegment.dll`、`RegisterTdxFunc` 和原函数 `1/2/99` 保持兼容；`v0.1.0-rc.2` 新增函数 `10/11` 承接原公式中的笔计算。
 
@@ -14,7 +14,7 @@ TDXSegment 是通达信使用的 C++17 计算库，提供笔识别、已确认�
 
 三数组 ABI 无法在一次回调中同时接收 H、L、C、DAY。函数10把后续实际使用的均线比较、有效性和跨日判断编码为小整数；函数11完成分型、包含、跳空、距离筛选及笔端点计算。两个入口均只读取当前数组，不保存全局行情或跨调用缓存，因此不同股票、周期和调用顺序不会共享上次输入。
 
-公式保留顶底两个布尔标记用于绘图；生成 `PENEVENT` 时仍采用顶优先。旧公式中 `CLD1` 的最后一个分支仍比较 `REF(H,...)`，本轮不修订该规则。详见[迁移语义与宿主对照](docs/pen-migration.md)。
+公式保留顶底两个布尔标记用于绘图；生成 `PENEVENT` 时仍采用顶优先。旧公式中 `CLD1` 的最后一个分支仍比较 `REF(H,...)`，本轮不修订该规则。详见[迁移语义与宿主对照](docs/development/pen-migration.md)。
 
 ## 接口
 
@@ -66,7 +66,7 @@ build/x64/Release/TDXSegment.dll
 .\scripts\build.ps1 -Architecture x64 -DllOnly
 ```
 
-脚本通过 `vswhere` 发现工具链，也支持显式指定工具与构建目录。手动 CMake、参数说明和打包入口见[构建文档](docs/build.md)。构建、测试与打包分开执行。
+脚本通过 `vswhere` 发现工具链，也支持显式指定工具与构建目录。手动 CMake、参数说明和打包入口见[构建文档](docs/development/build.md)。构建、测试与打包分开执行。
 
 ## 项目结构
 
@@ -78,7 +78,11 @@ tdx-segment/
 ├─ reference/           Python 参考实现
 ├─ tests/               自测、对拍、合成用例与回归工具
 ├─ examples/tdx/        四份日常公式与一份迁移对照公式
-├─ docs/                算法、架构、接口与验证文档
+├─ docs/user/           使用与案例说明
+├─ docs/algorithm/      算法规则、恢复与追溯
+├─ docs/development/    构建、架构与接口
+├─ docs/release/        发布验证与来源
+├─ docs/assets/         案例和安装配图
 ├─ scripts/             构建、测试、检查与打包入口
 └─ .github/workflows/   Windows 双架构自动构建与测试
 ```
@@ -87,14 +91,14 @@ tdx-segment/
 
 | 想了解什么 | 从这里开始 |
 | :--- | :--- |
-| 如何加载 DLL、导入公式与排错 | [使用说明](docs/usage.md) |
-| 如何构建、运行测试与打包 | [构建文档](docs/build.md) |
-| 输入、函数号、事件位与错误码 | [接口协议](docs/interface.md) |
-| 算法规则与实验恢复边界 | [算法核查](docs/algorithm.md) · [恢复策略](docs/recovery.md) |
-| 模块划分与状态生命周期 | [架构说明](docs/architecture.md) |
-| 从规则追溯到实现 | [规则与实现追溯](docs/traceability.md) |
-| 哪些验证通过，哪些仍未完成 | [验证边界](docs/validation.md) |
-| 公开源码的整理与来源 | [目录迁移](docs/migration.md) · [许可证与来源](docs/provenance.md) |
+| 如何加载 DLL、导入公式与排错 | [使用说明](docs/user/usage.md) |
+| 如何构建、运行测试与打包 | [构建文档](docs/development/build.md) |
+| 输入、函数号、事件位与错误码 | [接口协议](docs/development/interface.md) |
+| 算法规则与实验恢复边界 | [算法核查](docs/algorithm/rules.md) · [恢复策略](docs/algorithm/recovery.md) |
+| 模块划分与状态生命周期 | [架构说明](docs/development/architecture.md) |
+| 从规则追溯到实现 | [规则与实现追溯](docs/algorithm/traceability.md) |
+| 哪些验证通过，哪些仍未完成 | [验证边界](docs/release/validation.md) |
+| 公开源码的整理与来源 | [目录迁移](docs/release/migration.md) · [许可证与来源](docs/release/provenance.md) |
 | 如何参与，版本有哪些变化 | [贡献指南](CONTRIBUTING.md) · [变更记录](CHANGELOG.md) |
 
 ## 参与贡献
@@ -121,7 +125,7 @@ tdx-segment/
 ## 验证边界
 
 - **算法验收仍有缺口。** 历史最终组合全量验收未完成，历史三项 99% 算法一致性目标未达成；预发布不等于算法定稿。
-- **实验恢复策略存在适用边界。** 本版保留既有判定规则与参考分歧，具体见[恢复策略](docs/recovery.md)和[验证边界](docs/validation.md)。
+- **实验恢复策略存在适用边界。** 本版保留既有判定规则与参考分歧，具体见[恢复策略](docs/algorithm/recovery.md)和[验证边界](docs/release/validation.md)。
 - **真实客户端人工验收尚未完成。** DLL 自加载与回调测试已通过，但本次在具体通达信版本中的公式导入、绘图、刷新和交互检查尚未执行。
 - **结果依赖上游笔端点和输入历史。** 随包笔识别公式包含回填逻辑，不能将整套接入宣称为“完全不重绘”；改变端点、价格或历史范围可能影响计算结果。
 
@@ -131,13 +135,13 @@ x86/x64 原有13项测试完整保留，新增笔计算边界自测与真实 DLL
 
 笔参考实现直接解释冻结的原公式文本，采用明确的起始窗口和无效值约定。它只能证明 C++ 与该参考语义一致，不能证明每个通达信版本的内置函数边界相同。维护者目前没有旧笔公式导出结果；`05_笔计算迁移对照公式.txt` 已准备，客户端实际对照仍待执行。
 
-发布报告记录每项是否执行以及源码提交，不把既有算法争议或历史门槛写成已通过。用户首页集中说明两类待定；完整验证边界保留在[验证文档](docs/validation.md)。
+发布报告记录每项是否执行以及源码提交，不把既有算法争议或历史门槛写成已通过。用户首页集中说明两类待定；完整验证边界保留在[验证文档](docs/release/validation.md)。
 
 ## 许可证与来源
 
-自有源码、文档及随包公式采用 [MIT](LICENSE)，`Copyright (c) 2026 Sixun Huang`。最小 ABI 兼容声明不是官方 SDK，外部头文件替换及第三方来源见[来源说明](docs/provenance.md)。
+自有源码、文档及随包公式采用 [MIT](LICENSE)，`Copyright (c) 2026 Sixun Huang`。最小 ABI 兼容声明不是官方 SDK，外部头文件替换及第三方来源见[来源说明](docs/release/provenance.md)。
 
-首页借鉴 [Best-README-Template](https://github.com/othneildrew/Best-README-Template) 的居中介绍、展示和上手导航组织方式。图表与操作示意图为本项目绘制；合成案例来源和截取范围见[案例说明](docs/examples.md)。
+首页借鉴 [Best-README-Template](https://github.com/othneildrew/Best-README-Template) 的居中介绍、展示和上手导航组织方式。图表与操作示意图为本项目绘制；合成案例来源和截取范围见[案例说明](docs/user/examples.md)。
 
 ## English overview
 

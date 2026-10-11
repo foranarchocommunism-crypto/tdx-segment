@@ -42,4 +42,4 @@
 | BASIS-036 | `HypotheticalTurn.A`、`CandidateTop.A` 及分支共享 | 用户要求：连续低顶、严格比较、以原始 B₀ 判断特例、第二种和走势 A 共用特殊 A |
 
 
-参考实现见 [segment_reference.py](../reference/segment_reference.py)，现行外层恢复策略见 [恢复补充](recovery.md)。
+参考实现见 [segment_reference.py](../../reference/segment_reference.py)，现行外层恢复策略见 [恢复补充](recovery.md)。
