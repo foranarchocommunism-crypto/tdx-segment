@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_FILES = {"CMakeLists.txt", "VERSION", "LICENSE", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", ".gitignore", ".gitattributes"}
+ROOT_FILES = {"CMakeLists.txt", "VERSION", "LICENSE", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", ".gitignore", ".gitattributes", "docs/assets/overview.svg"}
 SUFFIXES = {"src": {".cpp", ".hpp"}, "include": {".hpp"}, "compat": {".h"}, "reference": {".py"}, "tests": {".cpp", ".py"}, "scripts": {".ps1", ".py"}, "docs": {".md"}, "examples": {".txt"}, ".github": {".yml"}}
 
 
