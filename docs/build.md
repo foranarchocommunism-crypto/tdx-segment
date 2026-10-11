@@ -56,7 +56,7 @@ python -B scripts/check_public_tree.py
 
 二进制用户包只包含 `TDXSegment.dll`、“公式”文件夹、`README.md`、可直接打开的 `使用说明.html`、说明所需配图和 MIT 许可证。Python、参考实现、开发头文件、测试材料、构建信息及验证报告不进入用户包。说明页从用户 README 生成，不加载外部字体或配图。
 
-若只整理用户包，可保留已验收源码标签与 DLL，指定 `-SourceRef v0.1.0-rc.2 -Output 'dist/v0.1.0-rc.2-user'`，同时传入原验收报告及构建目录。打包器要求当前提交干净，并逐字核对所有生产源码、公共头文件、ABI 声明、CMake 和 VERSION；其中任一变化都禁止复用。清单分别记录 `source_commit` 与 `packaging_commit`，源码 ZIP 仍来自原标签。
+若只整理用户包或文档，可保留已验收源码标签与 DLL，指定 `-SourceRef v0.1.0-rc.2 -Output 'dist/v0.1.0-rc.2-user'`，同时传入验收报告及构建目录。打包器要求当前提交干净，并逐字核对所有生产源码、公共头文件、ABI 声明、CMake 和 VERSION；其中任一变化都禁止复用。清单的 `source_commit` 对应 DLL 已验收源码，`packaging_commit` 和 `source_archive.source_commit` 对应当前文档及源码包。当前源码 ZIP 必须先独立验收，并将其 SHA-256 记入验收报告；用户包许可证来自当前提交。
 
 预发布 ZIP 为便携包，不执行安装、客户端配置修改或远程上传。
 

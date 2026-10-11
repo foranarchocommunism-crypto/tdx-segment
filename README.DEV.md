@@ -1,5 +1,7 @@
 # 缠论线段自动划分 · 开发者说明
 
+作者：[Sixun Huang](https://github.com/foranarchocommunism-crypto)。
+
 [用户首页](README.md) · [构建与打包](docs/build.md) · [接口协议](docs/interface.md) · [笔计算迁移](docs/pen-migration.md)
 
 TDXSegment 是通达信使用的 C++17 计算库，提供笔识别、已确认线段事件、Windows DLL、Python 参考计算和回归工具。工程名称、`TDXSegment.dll`、`RegisterTdxFunc` 和原函数 `1/2/99` 保持兼容；`v0.1.0-rc.2` 新增函数 `10/11` 承接原公式中的笔计算。
@@ -133,7 +135,7 @@ x86/x64 原有13项测试完整保留，新增笔计算边界自测与真实 DLL
 
 ## 许可证与来源
 
-自有源码、文档及随包公式采用 [MIT](LICENSE)，`Copyright (c) 2026 TDXSegment contributors`。最小 ABI 兼容声明不是官方 SDK，外部头文件替换及第三方来源见[来源说明](docs/provenance.md)。
+自有源码、文档及随包公式采用 [MIT](LICENSE)，`Copyright (c) 2026 Sixun Huang`。最小 ABI 兼容声明不是官方 SDK，外部头文件替换及第三方来源见[来源说明](docs/provenance.md)。
 
 首页借鉴 [Best-README-Template](https://github.com/othneildrew/Best-README-Template) 的居中介绍、展示和上手导航组织方式。图表与操作示意图为本项目绘制；合成案例来源和截取范围见[案例说明](docs/examples.md)。
 

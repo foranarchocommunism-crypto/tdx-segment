@@ -14,6 +14,7 @@ from pathlib import Path
 from user_manual import render_manual
 
 ROOT = Path(__file__).resolve().parents[1]
+AUTHOR_NAME = "Sixun Huang"
 USER_ASSETS = ("hero.svg", "case-overview.svg", "case-first-pending.svg", "case-second-pending.svg", "install-01.svg", "install-02.svg", "install-03.svg")
 
 
@@ -94,14 +95,16 @@ def main() -> None:
         raise RuntimeError(f"Refuse to overwrite release directory: {output}")
     output.mkdir(parents=True)
     source_zip = output / f"tdx-segment-{tag}-source.zip"
-    subprocess.run(["git", "archive", "--format=zip", f"--prefix=tdx-segment-{tag}/", f"--output={source_zip}", tag], cwd=ROOT, check=True)
+    subprocess.run(["git", "archive", "--format=zip", f"--prefix=tdx-segment-{tag}/", f"--output={source_zip}", packaging_commit], cwd=ROOT, check=True)
     if sha(source_zip) != report["source_archive_smoke"]["source_archive_sha256"]:
         raise RuntimeError("Source archive differs from independently tested archive")
     report_text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     (output / "validation-report.json").write_text(report_text, encoding="utf-8")
     notes = f"""# 缠论线段自动划分 {tag}
 
-源码提交：`{commit}`。预发布，MIT，TDXSegment contributors。
+作者：[{AUTHOR_NAME}](https://github.com/foranarchocommunism-crypto)。版权：Copyright (c) 2026 {AUTHOR_NAME}，MIT。
+
+DLL验收源码提交：`{commit}`。源码包、文档与打包提交：`{packaging_commit}`。预发布。
 
 笔计算移入DLL，新增无状态函数10/11，四份日常公式同步更新，另提供05迁移对照公式。正式函数1、实验函数2、接线函数99及ABI保持既有行为。按通达信位数选包，先运行01自检，公式默认第1槽。用户指南与开发者说明分开，附合成案例和安装示意图。
 
@@ -113,14 +116,17 @@ def main() -> None:
 
 用户包只含DLL、五份公式、图文说明和MIT许可证，不含Python、源码、开发头文件或测试报告，也不需要安装Python。解压后双击“使用说明.html”查看图文步骤。
 
-用户包整理提交：`{packaging_commit}`；源码标签和DLL仍为上述已验收提交。SHA256SUMS.txt校验发布文件，release-manifest.json记录源码、打包、工具链、架构及文件哈希。验证报告单独提供在发布页面。
+源码包更新了文档、许可证和打包工具，生产源码及构建设置与已验收版本逐字一致；源码标签和DLL保留上述已验收提交。SHA256SUMS.txt校验发布文件，release-manifest.json分别记录DLL源码、源码包、打包提交、工具链、架构及文件哈希。验证报告单独提供在发布页面。
 """
     (output / "RELEASE_NOTES.md").write_text(notes, encoding="utf-8")
     for arch, metadata in architectures.items():
         package = output / f"TDXSegment-{tag}-windows-{arch}.zip"
         with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
             archive.write(args.build_root.resolve() / arch / "Release" / "TDXSegment.dll", "TDXSegment.dll")
-            archive.writestr("LICENSE", accepted_files["LICENSE"])
+            license_text = current_files["LICENSE"].decode("utf-8")
+            if f"Copyright (c) 2026 {AUTHOR_NAME}" not in license_text:
+                raise RuntimeError("Current MIT copyright and project author disagree")
+            archive.writestr("LICENSE", current_files["LICENSE"])
             for name in USER_ASSETS:
                 archive.writestr("docs/assets/" + name, current_files["docs/assets/" + name])
             formulas = {name: blob for name, blob in accepted_files.items() if name.startswith("examples/tdx/") and name.endswith(".txt")}
@@ -156,7 +162,7 @@ def main() -> None:
         metadata["package_sha256"] = sha(package)
         with zipfile.ZipFile(package) as archive:
             metadata["package_files"] = {name: hashlib.sha256(archive.read(name)).hexdigest() for name in sorted(archive.namelist())}
-    manifest = {"schema": "tdx-segment-release-manifest-v1", "version": version, "tag": tag, "source_commit": commit, "packaging_commit": packaging_commit, "package_contents": "user-dll-formulas-manual-license", "license": "MIT", "source_archive": {"file": source_zip.name, "sha256": sha(source_zip)}, "architectures": architectures, "validation_report_sha256": sha(output / "validation-report.json"), "source_files": {name: hashlib.sha256(blob).hexdigest() for name, blob in accepted_files.items()}}
+    manifest = {"schema": "tdx-segment-release-manifest-v1", "version": version, "tag": tag, "source_commit": commit, "packaging_commit": packaging_commit, "author": {"name": AUTHOR_NAME, "github": "foranarchocommunism-crypto"}, "copyright": f"Copyright (c) 2026 {AUTHOR_NAME}", "package_contents": "user-dll-formulas-manual-license", "license": "MIT", "source_archive": {"file": source_zip.name, "source_commit": packaging_commit, "sha256": sha(source_zip)}, "architectures": architectures, "validation_report_sha256": sha(output / "validation-report.json"), "source_files": {name: hashlib.sha256(blob).hexdigest() for name, blob in current_files.items()}}
     (output / "release-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     files = sorted(p for p in output.iterdir() if p.is_file())
     (output / "SHA256SUMS.txt").write_text("".join(f"{sha(p)}  {p.name}\n" for p in files), encoding="utf-8")

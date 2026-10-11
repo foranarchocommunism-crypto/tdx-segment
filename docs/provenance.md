@@ -1,6 +1,6 @@
 # 许可证、来源与发布范围
 
-项目自有 C++/Python 源码、文档及随包公式按根目录 [MIT LICENSE](../LICENSE) 发布。原四份公式的公开授权已由项目维护者确认；迁移对照公式由本项目在相同原公式基础上新增。版权署名为 TDXSegment contributors。
+项目唯一作者为 [Sixun Huang](https://github.com/foranarchocommunism-crypto)。自有 C++/Python 源码、文档及随包公式按根目录 [MIT LICENSE](../LICENSE) 发布，版权署名为 `Copyright (c) 2026 Sixun Huang`。原四份公式的公开授权已由项目作者确认；迁移对照公式由本项目在相同原公式基础上新增。
 
 `compat/tdx/PluginTCalcFunc.h` 是按插件接口 ABI 编写的最小兼容声明，只包含必要的类型、布局和函数签名；不是随包发布的厂商 SDK。工程允许使用外部厂商头文件替换，厂商 SDK 的许可仍由其权利人规定。
 

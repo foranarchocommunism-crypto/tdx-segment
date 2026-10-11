@@ -4,6 +4,8 @@
 
 **自动画笔、连接线段，在通达信里直接看走势。**
 
+作者：[**Sixun Huang**](https://github.com/foranarchocommunism-crypto)
+
 [![预发布](https://img.shields.io/badge/预发布-v0.1.0--rc.2-e9b45c?style=flat-square)](https://github.com/foranarchocommunism-crypto/tdx-segment/releases/tag/v0.1.0-rc.2)
 [![适用平台](https://img.shields.io/badge/适用-通达信_Windows-76cbb4?style=flat-square)](#安装说明)
 [![开源许可](https://img.shields.io/badge/开源-MIT-8aa3c3?style=flat-square)](LICENSE)
