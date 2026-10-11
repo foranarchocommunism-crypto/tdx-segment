@@ -1,6 +1,6 @@
 Set-StrictMode -Version Latest
 
-function Get-TdxTools([string]$CMakePath = '', [string]$Generator = '') {
+function Get-TdxTools([string]$CMakePath = '', [string]$Generator = '', [bool]$RequireGenerator = $true) {
     $vsInstall = ''
     $vsVersion = ''
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
@@ -18,7 +18,7 @@ function Get-TdxTools([string]$CMakePath = '', [string]$Generator = '') {
         $Generator = if ($vsVersion -match '^18\.') { 'Visual Studio 18 2026' } else { 'Visual Studio 17 2022' }
     }
     $available = & $cmake --help
-    if ($LASTEXITCODE -ne 0 -or -not ($available -match [regex]::Escape($Generator))) {
+    if ($LASTEXITCODE -ne 0 -or ($RequireGenerator -and -not ($available -match [regex]::Escape($Generator)))) {
         throw "CMake does not support generator: $Generator. Specify -CMakePath and -Generator."
     }
     return @{ CMake = $cmake; CTest = (Join-Path (Split-Path -Parent $cmake) 'ctest.exe'); Generator = $Generator }
@@ -32,11 +32,11 @@ function Get-TdxBuildRoot([string]$ProjectRoot, [string]$BuildRoot) {
 
 function Invoke-TdxPython([string]$PythonExecutable, [string[]]$Arguments) {
     if ($PythonExecutable) {
-        & $PythonExecutable -B @Arguments
+        & $PythonExecutable -X utf8 -B @Arguments
     } elseif (Get-Command py.exe -ErrorAction SilentlyContinue) {
-        & py.exe -3.12 -B @Arguments
+        & py.exe -3.12 -X utf8 -B @Arguments
     } else {
-        & python.exe -B @Arguments
+        & python.exe -X utf8 -B @Arguments
     }
     if ($LASTEXITCODE -ne 0) { throw 'Python command failed.' }
 }

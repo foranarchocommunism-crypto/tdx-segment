@@ -127,7 +127,7 @@ def main() -> int:
             print(f"{arch}: actual DLL 1/2/99, {len(cases) * 3} calls, zero differences", flush=True)
             for kind, script, runner in (("events", "crosscheck_reference.py", "tdx_segment_vector_runner.exe"), ("audit", "crosscheck_audit.py", "tdx_segment_audit_runner.exe")):
                 print(f"{arch}: checking Python/{kind} ...", flush=True)
-                output = invoke([sys.executable, "-B", str(ROOT / "tests" / script), "--runner", str(candidate / runner), "--reference", str(reference_path), "--random-cases", str(args.random_cases), "--seed", str(args.seed)])
+                output = invoke([sys.executable, "-X", "utf8", "-B", str(ROOT / "tests" / script), "--runner", str(candidate / runner), "--reference", str(reference_path), "--random-cases", str(args.random_cases), "--seed", str(args.seed)])
                 entry[f"python_{kind}"] = {"passed": True, "output": output.strip()}
                 print(output.strip(), flush=True)
         if git("rev-parse", "HEAD") != commit or git("status", "--porcelain", "--untracked-files=all"):

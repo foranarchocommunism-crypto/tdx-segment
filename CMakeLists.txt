@@ -197,6 +197,7 @@ add_test(
     NAME python_cpp_reference_crosscheck
     COMMAND
         "${Python3_EXECUTABLE}"
+        -X utf8
         -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/crosscheck_reference.py"
         --runner "$<TARGET_FILE:tdx_segment_vector_runner>"
@@ -214,6 +215,7 @@ add_test(
     NAME python_cpp_audit_crosscheck
     COMMAND
         "${Python3_EXECUTABLE}"
+        -X utf8
         -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/crosscheck_audit.py"
         --runner "$<TARGET_FILE:tdx_segment_audit_runner>"
@@ -231,6 +233,7 @@ add_test(
     NAME window_growth_performance_regression
     COMMAND
         "${Python3_EXECUTABLE}"
+        -X utf8
         -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/window_growth_benchmark.py"
         --runner "$<TARGET_FILE:tdx_segment_vector_runner>"

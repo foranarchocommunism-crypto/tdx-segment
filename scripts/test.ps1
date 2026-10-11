@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$tools = Get-TdxTools $CMakePath
+$tools = Get-TdxTools $CMakePath '' $false
 $buildBase = Get-TdxBuildRoot $projectRoot $BuildRoot
 $architectures = if ($Architecture -eq 'all') { @('x86', 'x64') } else { @($Architecture) }
 foreach ($arch in $architectures) {
