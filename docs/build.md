@@ -54,6 +54,10 @@ python -B scripts/check_public_tree.py
 
 打包器核对源码提交、标签、验收记录及 DLL 哈希，再生成源码 ZIP、两个二进制 ZIP、验证报告、发布说明、SHA256SUMS 和构建清单。默认输出 `dist/v0.1.0-rc.2`，拒绝覆盖已有发布目录。打包需要 Git 和 Python 3.12；普通 DLL 构建不需要 Python。
 
+二进制用户包只包含 `TDXSegment.dll`、“公式”文件夹、`README.md`、可直接打开的 `使用说明.html`、说明所需配图和 MIT 许可证。Python、参考实现、开发头文件、测试材料、构建信息及验证报告不进入用户包。说明页从用户 README 生成，不加载外部字体或配图。
+
+若只整理用户包，可保留已验收源码标签与 DLL，指定 `-SourceRef v0.1.0-rc.2 -Output 'dist/v0.1.0-rc.2-user'`，同时传入原验收报告及构建目录。打包器要求当前提交干净，并逐字核对所有生产源码、公共头文件、ABI 声明、CMake 和 VERSION；其中任一变化都禁止复用。清单分别记录 `source_commit` 与 `packaging_commit`，源码 ZIP 仍来自原标签。
+
 预发布 ZIP 为便携包，不执行安装、客户端配置修改或远程上传。
 
 ## 笔迁移扩展对拍

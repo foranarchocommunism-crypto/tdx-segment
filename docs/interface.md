@@ -22,4 +22,4 @@
 
 ## 笔计算入口（rc.2新增）
 
-函数10 `(C,DAY,0)` 返回均线方向/跨日/预热编码，函数11 `(H,L,context)` 返回顶底两个位。新增C++类型及声明见 [pen_formula.hpp](../include/tdx_segment/pen_formula.hpp)，编码、输入验证和宿主验收边界见[笔迁移说明](pen-migration.md)。旧函数的标记、错误码与ABI不变。
+函数10 `(C,DAY,C)` 返回均线方向/跨日/预热编码，函数11 `(H,L,context)` 返回顶底两个位。新增C++类型及声明见 [pen_formula.hpp](../include/tdx_segment/pen_formula.hpp)，编码、输入验证和宿主验收边界见[笔迁移说明](pen-migration.md)。旧函数的标记、错误码与ABI不变。

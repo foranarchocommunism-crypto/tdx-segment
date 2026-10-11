@@ -57,6 +57,8 @@
 | 32 位 | [下载 x86 版](https://github.com/foranarchocommunism-crypto/tdx-segment/releases/download/v0.1.0-rc.2/TDXSegment-v0.1.0-rc.2-windows-x86.zip) |
 | 64 位 | [下载 x64 版](https://github.com/foranarchocommunism-crypto/tdx-segment/releases/download/v0.1.0-rc.2/TDXSegment-v0.1.0-rc.2-windows-x64.zip) |
 
+用户包只放程序、公式和使用说明。解压后，`TDXSegment.dll` 在最外层，五份公式在“公式”文件夹；双击 **`使用说明.html`** 就能查看图文步骤，无需配置开发环境。
+
 ![安装第一步：选择对应版本并解压](docs/assets/install-01.svg)
 
 ### 2. 放好文件，绑定第 1 号

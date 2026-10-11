@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import posixpath
 import re
@@ -10,7 +11,10 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+from user_manual import render_manual
+
 ROOT = Path(__file__).resolve().parents[1]
+USER_ASSETS = ("hero.svg", "case-overview.svg", "case-first-pending.svg", "case-second-pending.svg", "install-01.svg", "install-02.svg", "install-03.svg")
 
 
 def git(*args: str) -> str:
@@ -19,6 +23,11 @@ def git(*args: str) -> str:
 
 def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def source_files(commit: str) -> dict[str, bytes]:
+    paths = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "-z", commit], cwd=ROOT)
+    return {path.decode("utf-8"): subprocess.check_output(["git", "show", f"{commit}:{path.decode('utf-8')}"], cwd=ROOT) for path in paths.split(b"\0") if path}
 
 
 def cmake_metadata(build: Path) -> dict:
@@ -46,14 +55,23 @@ def main() -> None:
     parser.add_argument("--build-root", type=Path, default=ROOT / "build")
     parser.add_argument("--validation-report", type=Path, required=True)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--source-ref", default="HEAD", help="Accepted source ref; a different HEAD may change packaging/docs only")
     args = parser.parse_args()
     version = (ROOT / "VERSION").read_text().strip()
     tag = f"v{version}"
-    commit = git("rev-parse", "HEAD")
+    packaging_commit = git("rev-parse", "HEAD")
+    commit = git("rev-parse", f"{args.source_ref}^{{commit}}")
     if git("status", "--porcelain", "--untracked-files=all"):
         raise RuntimeError("Refuse to package a dirty checkout")
     if git("rev-parse", f"{tag}^{{commit}}") != commit:
-        raise RuntimeError("Release tag and HEAD must identify the same source commit")
+        raise RuntimeError("Release tag and accepted source ref must identify the same commit")
+    accepted_files = source_files(commit)
+    current_files = source_files(packaging_commit)
+    # A packaging refresh can reuse accepted DLLs only while every production
+    # source, ABI declaration and build setting remains byte-identical.
+    build_paths = {name for name in set(accepted_files) | set(current_files) if name.startswith(("src/", "include/", "compat/")) or name in {"CMakeLists.txt", "VERSION"}}
+    if any(accepted_files.get(name) != current_files.get(name) for name in build_paths):
+        raise RuntimeError("Packaging refresh changed computation sources or build settings; build and validate a new release")
     report = json.loads(args.validation_report.read_text(encoding="utf-8"))
     if not report.get("passed") or report.get("source_commit") != commit or report.get("version") != version:
         raise RuntimeError("Validation receipt does not bind this version and commit")
@@ -93,34 +111,42 @@ def main() -> None:
 
 远程GitHub CI状态：{report.get('remote_ci', 'not_run')}。本次客户端人工验证：{report.get('client_manual_validation', 'not_run')}。
 
-SHA256SUMS.txt校验发布文件；release-manifest.json记录源码、工具链、架构及哈希。普通使用见README.md，开发与构建见源码包README.DEV.md。
+用户包只含DLL、五份公式、图文说明和MIT许可证，不含Python、源码、开发头文件或测试报告，也不需要安装Python。解压后双击“使用说明.html”查看图文步骤。
+
+用户包整理提交：`{packaging_commit}`；源码标签和DLL仍为上述已验收提交。SHA256SUMS.txt校验发布文件，release-manifest.json记录源码、打包、工具链、架构及文件哈希。验证报告单独提供在发布页面。
 """
     (output / "RELEASE_NOTES.md").write_text(notes, encoding="utf-8")
     for arch, metadata in architectures.items():
         package = output / f"TDXSegment-{tag}-windows-{arch}.zip"
         with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
             archive.write(args.build_root.resolve() / arch / "Release" / "TDXSegment.dll", "TDXSegment.dll")
-            for rel in ("LICENSE", "VERSION", "docs/usage.md", "docs/interface.md", "docs/pen-migration.md", "include/tdx_segment/tdx_segment.hpp", "include/tdx_segment/pen_formula.hpp"):
-                archive.write(ROOT / rel, rel)
-            for asset in sorted((ROOT / "docs/assets").glob("*.svg")):
-                archive.write(asset, "docs/assets/" + asset.name)
-            archive.write(ROOT / "tests/fixtures/legacy_pen_formula.txt", "tests/fixtures/legacy_pen_formula.txt")
-            archive.write(ROOT / "reference/pen_formula_reference.py", "reference/pen_formula_reference.py")
-            for formula in sorted((ROOT / "examples" / "tdx").glob("*.txt")):
-                archive.write(formula, "examples/tdx/" + formula.name)
+            archive.writestr("LICENSE", accepted_files["LICENSE"])
+            for name in USER_ASSETS:
+                archive.writestr("docs/assets/" + name, current_files["docs/assets/" + name])
+            formulas = {name: blob for name, blob in accepted_files.items() if name.startswith("examples/tdx/") and name.endswith(".txt")}
+            if len(formulas) != 5:
+                raise RuntimeError("Expected four daily formulas and one host comparison formula")
+            for name, blob in sorted(formulas.items()):
+                archive.writestr("公式/" + posixpath.basename(name), blob)
             user_readme = (ROOT / "README.md").read_text(encoding="utf-8").replace(
-                "](README.DEV.md)", f"](https://github.com/foranarchocommunism-crypto/tdx-segment/blob/{tag}/README.DEV.md)")
-            archive.writestr("README.md", user_readme + f"\n包内版本：{tag} / {arch}。源码提交：`{commit}`。\n")
-            archive.writestr("build-info.json", json.dumps({"version": version, "source_commit": commit, "architecture": arch, **metadata}, ensure_ascii=False, indent=2) + "\n")
-            archive.writestr("RELEASE_NOTES.md", notes)
-            archive.writestr("validation-report.json", report_text)
-        # Interface documentation must remain navigable in an extracted binary ZIP.
+                "](README.DEV.md)", f"](https://github.com/foranarchocommunism-crypto/tdx-segment/blob/{packaging_commit}/README.DEV.md)")
+            user_readme += f"\n版本：{tag}。此包适用于{'32' if arch == 'x86' else '64'}位通达信。\n"
+            archive.writestr("README.md", user_readme)
+            archive.writestr("使用说明.html", render_manual(user_readme))
+        # Keep user documentation navigable after extraction; developer files
+        # stay in the source archive and release-page attachments.
         with zipfile.ZipFile(package) as archive:
             names = set(archive.namelist())
+            expected = {"TDXSegment.dll", "LICENSE", "README.md", "使用说明.html"} | {"docs/assets/" + name for name in USER_ASSETS} | {"公式/" + posixpath.basename(name) for name in formulas}
+            if names != expected:
+                raise RuntimeError("User ZIP contains files outside the DLL/formulas/manual/license allowlist")
             for name in names:
-                if not name.endswith(".md"):
+                if not name.endswith((".md", ".html")):
                     continue
-                for target in re.findall(r"\]\(([^\s)]+)\)", archive.read(name).decode("utf-8")):
+                text = archive.read(name).decode("utf-8")
+                targets = re.findall(r"\]\(([^\s)]+)\)", text) if name.endswith(".md") else re.findall(r'(?:href|src)="([^"]+)"', text)
+                for target in targets:
+                    target = html.unescape(target)
                     if target.startswith(("http://", "https://", "#", "mailto:")):
                         continue
                     destination = posixpath.normpath(posixpath.join(posixpath.dirname(name), target.split("#", 1)[0]))
@@ -128,11 +154,9 @@ SHA256SUMS.txt校验发布文件；release-manifest.json记录源码、工具链
                         raise RuntimeError(f"Broken package documentation link: {name} -> {target}")
         metadata["package"] = package.name
         metadata["package_sha256"] = sha(package)
-    manifest = {"schema": "tdx-segment-release-manifest-v1", "version": version, "tag": tag, "source_commit": commit, "license": "MIT", "source_archive": {"file": source_zip.name, "sha256": sha(source_zip)}, "architectures": architectures, "validation_report_sha256": sha(output / "validation-report.json"), "source_files": {}}
-    for item in subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).split(b"\0"):
-        if item:
-            rel = item.decode("utf-8")
-            manifest["source_files"][rel] = sha(ROOT / rel)
+        with zipfile.ZipFile(package) as archive:
+            metadata["package_files"] = {name: hashlib.sha256(archive.read(name)).hexdigest() for name in sorted(archive.namelist())}
+    manifest = {"schema": "tdx-segment-release-manifest-v1", "version": version, "tag": tag, "source_commit": commit, "packaging_commit": packaging_commit, "package_contents": "user-dll-formulas-manual-license", "license": "MIT", "source_archive": {"file": source_zip.name, "sha256": sha(source_zip)}, "architectures": architectures, "validation_report_sha256": sha(output / "validation-report.json"), "source_files": {name: hashlib.sha256(blob).hexdigest() for name, blob in accepted_files.items()}}
     (output / "release-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     files = sorted(p for p in output.iterdir() if p.is_file())
     (output / "SHA256SUMS.txt").write_text("".join(f"{sha(p)}  {p.name}\n" for p in files), encoding="utf-8")
