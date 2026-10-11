@@ -1,0 +1,13 @@
+/build/
+/dist/
+/.vs/
+__pycache__/
+*.py[cod]
+*.user
+*.suo
+*.dll
+*.exe
+*.pdb
+*.lib
+*.obj
+*.zip
