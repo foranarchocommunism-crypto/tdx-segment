@@ -1,6 +1,6 @@
 # 构建、测试与打包
 
-首次发布在 Visual Studio 2026 / MSVC 工具链和 Python 3.12 上验证，准确版本以发布构建清单为准。工程要求 Windows、MSVC C++17 和 CMake 3.24+；VS 2026 需使用支持该生成器的 CMake。GitHub Actions 配置固定使用 `windows-2025-vs2026`，本次本地交付尚未运行远程 CI。
+首次发布在 Visual Studio 2026 / MSVC 工具链和 Python 3.12 上验证，准确版本以发布构建清单为准。工程要求 Windows、MSVC C++17 和 CMake 3.24+；VS 2026 需使用支持该生成器的 CMake。GitHub Actions 配置固定使用 `windows-2025-vs2026`；[首次远程运行](https://github.com/foranarchocommunism-crypto/tdx-segment/actions/runs/38125105934)的 x86/x64 构建和全部 CTest 已通过。发布前本地记录仍以随包验证报告为准，当前分支状态见仓库 Actions 页面。
 
 ## 脚本
 
